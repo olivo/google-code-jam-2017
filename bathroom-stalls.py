@@ -1,11 +1,14 @@
 import heapq
 import math
 
-def split(value):
+def split_interval(interval):
 
-    n = value >> 1
+    res = interval >> 1
 
-    return (n, n-1) if value % 2 == 0 else (n, n)
+    if interval % 2 == 0:
+        return (res, res - 1)
+    else:
+        return (res, res)
 
 file = open("C-large-practice.in", "r")
 
@@ -17,35 +20,31 @@ for test in range(num_tests):
     K = int(K)
 
     q = []
-    C = dict()
-    C[N] = 1
-    P = 0
-    S = set([N])
+    occurrences = dict()
+    occurrences[N] = 1
+    filled_stalls = 0
+    pending_intervals = set([N])
 
     heapq.heappush(q, (N, N))
 
     while True:
-        #print("Intervals: " + str(q))
+        largest_interval = heapq.heappop(q)[1]
+        pending_intervals.remove(largest_interval)
 
-        x = heapq.heappop(q)[1]
-        S.remove(x)
+        large_subinterval, small_subinterval = split_interval(largest_interval)
+        filled_stalls += occurrences[largest_interval]
 
-        x0, x1 = split(x)
-        #x0 = math.ceil((x - 1) / 2)
-        #x1 = math.floor((x - 1) / 2)
-        P += C[x]
-
-        if P >= K:
-            print("Case #" + str(test + 1) + ": " + str(x0) + " " + str(x1))
+        if filled_stalls >= K:
+            print("Case #" + str(test + 1) + ": " + str(large_subinterval) + " " + str(small_subinterval))
             break
         else:
-            if x0 not in S:
-                heapq.heappush(q, (-x0, x0))
-                S.add(x0)
+            if large_subinterval not in pending_intervals:
+                heapq.heappush(q, (-large_subinterval, large_subinterval))
+                pending_intervals.add(large_subinterval)
 
-            if x1 not in S:
-                heapq.heappush(q, (-x1, x1))
-                S.add(x1)
+            if small_subinterval not in pending_intervals:
+                heapq.heappush(q, (-small_subinterval, small_subinterval))
+                pending_intervals.add(small_subinterval)
 
-            C[x0] = C.get(x0, 0) + C[x]
-            C[x1] = C.get(x1, 0) + C[x]
+            occurrences[large_subinterval] = occurrences.get(large_subinterval, 0) + occurrences[largest_interval]
+            occurrences[small_subinterval] = occurrences.get(small_subinterval, 0) + occurrences[largest_interval]
