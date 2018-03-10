@@ -1,4 +1,11 @@
 import heapq
+import math
+
+def split(value):
+
+    n = value >> 1
+
+    return (n, n-1) if value % 2 == 0 else (n, n)
 
 file = open("C-large-practice.in", "r")
 
@@ -10,34 +17,35 @@ for test in range(num_tests):
     K = int(K)
 
     q = []
+    C = dict()
+    C[N] = 1
+    P = 0
+    S = set([N])
 
+    heapq.heappush(q, (N, N))
 
-    heapq.heappush(q, ((N, 1), (1, N)))
-
-    for i in range(K):
+    while True:
         #print("Intervals: " + str(q))
 
-        q_element = heapq.heappop(q)[1]
+        x = heapq.heappop(q)[1]
+        S.remove(x)
 
-        interval_len = q_element[1] - q_element[0] + 1
-        current_left_ls = 0
-        current_right_ls = 0
+        x0, x1 = split(x)
+        #x0 = math.ceil((x - 1) / 2)
+        #x1 = math.floor((x - 1) / 2)
+        P += C[x]
 
-        #print("Interval: " + str(q_element))
-        #print("Interval length: " + str(interval_len))
+        if P >= K:
+            print("Case #" + str(test + 1) + ": " + str(x0) + " " + str(x1))
+            break
+        else:
+            if x0 not in S:
+                heapq.heappush(q, (-x0, x0))
+                S.add(x0)
 
-        if interval_len > 1:
-            midpoint = (q_element[0] + q_element[1]) // 2
-            #print("Start: " + str(q_element[0]))
-            #print("End: " + str(q_element[1]))
-            #print("Midpoint: " + str(midpoint))
+            if x1 not in S:
+                heapq.heappush(q, (-x1, x1))
+                S.add(x1)
 
-            if q_element[0] < midpoint:
-                heapq.heappush(q, ((-(midpoint - q_element[0]), q_element[0]),(q_element[0], midpoint - 1)))
-                current_left_ls = midpoint - q_element[0]
-            if q_element[1] > midpoint:
-                heapq.heappush(q, ((-(q_element[1] - midpoint), midpoint + 1),(midpoint + 1, q_element[1])))
-                current_right_ls = q_element[1] - midpoint
-
-    print("Case #" + str(test + 1) + ": " + str(max(current_left_ls, current_right_ls)) \
-                                          + " " + str(min(current_left_ls, current_right_ls)))
+            C[x0] = C.get(x0, 0) + C[x]
+            C[x1] = C.get(x1, 0) + C[x]
